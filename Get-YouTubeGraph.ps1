@@ -156,9 +156,9 @@ switch ($OutputFormat) {
         Write-Output "digraph YouTubeEndScreens {"
         Write-Output "    rankdir=LR;"
         foreach ($entry in $Visited.GetEnumerator()) {
-            $label = ($entry.Value -replace '"', '\"')
+            $title = ($entry.Value -replace '"', '\"')
             $url = "https://www.youtube.com/watch?v=$($entry.Key)"
-            Write-Output "    `"$($entry.Key)`" [label=`"$label`" URL=`"$url`" target=`"_blank`"];"
+            Write-Output "    `"$($entry.Key)`" [label=`"$title\n$($entry.Key)`" URL=`"$url`" target=`"_blank`"];"
         }
         foreach ($edge in $Edges) {
             Write-Output "    `"$($edge.From)`" -> `"$($edge.To)`";"
