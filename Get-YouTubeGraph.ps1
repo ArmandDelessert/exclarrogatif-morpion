@@ -157,7 +157,8 @@ switch ($OutputFormat) {
         Write-Output "    rankdir=LR;"
         foreach ($entry in $Visited.GetEnumerator()) {
             $label = ($entry.Value -replace '"', '\"')
-            Write-Output "    `"$($entry.Key)`" [label=`"$label`"];"
+            $url = "https://www.youtube.com/watch?v=$($entry.Key)"
+            Write-Output "    `"$($entry.Key)`" [label=`"$label`" URL=`"$url`" target=`"_blank`"];"
         }
         foreach ($edge in $Edges) {
             Write-Output "    `"$($edge.From)`" -> `"$($edge.To)`";"
