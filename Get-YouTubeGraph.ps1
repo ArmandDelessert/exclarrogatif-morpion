@@ -68,20 +68,30 @@ function Get-EndScreenData {
         $channelId = $Matches[1]
     }
 
-    $endScreenIds = [System.Collections.Generic.List[string]]::new()
-    $pattern = '"endscreenElementRenderer"\s*:\s*\{[^}]*?"style"\s*:\s*"VIDEO".*?"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([^"]+)"'
-    $regexMatches = [regex]::Matches($html, $pattern)
-    foreach ($m in $regexMatches) {
+    $linkedVideoIds = [System.Collections.Generic.List[string]]::new()
+
+    # Source 1 : End screens (éléments configurés par le créateur en fin de vidéo)
+    $endScreenPattern = '"endscreenElementRenderer"\s*:\s*\{[^}]*?"style"\s*:\s*"VIDEO".*?"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([^"]+)"'
+    foreach ($m in [regex]::Matches($html, $endScreenPattern)) {
         $id = $m.Groups[1].Value
-        if (-not $endScreenIds.Contains($id)) {
-            $endScreenIds.Add($id)
+        if (-not $linkedVideoIds.Contains($id)) {
+            $linkedVideoIds.Add($id)
+        }
+    }
+
+    # Source 2 : Vidéos intégrées dans la description (structuredDescriptionVideoLockupRenderer)
+    $descPattern = '"structuredDescriptionVideoLockupRenderer"\s*:\s*\{.*?"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([^"]+)"'
+    foreach ($m in [regex]::Matches($html, $descPattern)) {
+        $id = $m.Groups[1].Value
+        if (-not $linkedVideoIds.Contains($id)) {
+            $linkedVideoIds.Add($id)
         }
     }
 
     return [PSCustomObject]@{
-        Title        = $title
-        ChannelId    = $channelId
-        EndScreenIds = $endScreenIds
+        Title          = $title
+        ChannelId      = $channelId
+        LinkedVideoIds = $linkedVideoIds
     }
 }
 
@@ -126,9 +136,9 @@ while ($Queue.Count -gt 0) {
     }
 
     Write-Host "  Titre : $($data.Title)" -ForegroundColor White
-    Write-Host "  End screens trouvés : $($data.EndScreenIds.Count)" -ForegroundColor Yellow
+    Write-Host "  Vidéos liées trouvées : $($data.LinkedVideoIds.Count)" -ForegroundColor Yellow
 
-    foreach ($targetId in $data.EndScreenIds) {
+    foreach ($targetId in $data.LinkedVideoIds) {
         $Edges.Add([PSCustomObject]@{ From = $videoId; To = $targetId })
 
         if (-not $Visited.ContainsKey($targetId)) {
