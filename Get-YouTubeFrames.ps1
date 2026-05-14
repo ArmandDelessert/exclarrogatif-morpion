@@ -7,8 +7,9 @@
     une frame à un timestamp donné. Seules quelques secondes de vidéo sont téléchargées
     grâce au seek côté serveur (HTTP range request).
 
-    Les captures sont nommées selon le format : <index>_<videoId>.jpg
-    L'index est basé sur l'ordre d'apparition dans le fichier d'entrée.
+    Les captures sont nommées selon le format : <videoId>_<timestamp>s.jpg
+    Ce nommage permet de relancer le script avec un timestamp différent sans écraser
+    les captures précédentes.
 
 .PARAMETER InputFile
     Chemin vers un fichier texte contenant un identifiant de vidéo par ligne.
@@ -104,8 +105,8 @@ $failed = 0
 for ($i = 0; $i -lt $videoIds.Count; $i++) {
     $videoId = $videoIds[$i]
     $index = $i + 1
-    $paddedIndex = $index.ToString().PadLeft($videoIds.Count.ToString().Length, '0')
-    $outputFile = Join-Path $OutputDir "${paddedIndex}_${videoId}.jpg"
+    $timestampTag = $SeekSeconds.ToString("0.##").Replace(",", ".")
+    $outputFile = Join-Path $OutputDir "${videoId}_${timestampTag}s.jpg"
 
     Write-Host "[$index/$($videoIds.Count)] $videoId" -ForegroundColor Gray -NoNewline
 
