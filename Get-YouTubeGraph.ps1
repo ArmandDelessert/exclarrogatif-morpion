@@ -21,9 +21,15 @@
 .PARAMETER DelayMs
     Délai en millisecondes entre chaque requête HTTP (par défaut 500ms).
 
+.PARAMETER ExcludeFile
+    Chemin vers un fichier texte contenant des identifiants de vidéo à ignorer (un par ligne).
+    Les lignes vides et les lignes commençant par # sont ignorées.
+    Le format TSV (ID<tab>titre) est supporté : seul le premier champ est utilisé.
+
 .EXAMPLE
     .\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -OutputFormat List
     .\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -OnlySameChannel -MaxDepth 3
+    .\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -ExcludeFile already-visited.txt
 #>
 param (
     [Parameter(Mandatory = $true)]
@@ -36,11 +42,29 @@ param (
     [ValidateSet("List", "GraphDOT", "GraphCSV")]
     [string]$OutputFormat = "GraphDOT",
 
-    [int]$DelayMs = 500
+    [int]$DelayMs = 500,
+
+    [string]$ExcludeFile
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+# Chargement des IDs à exclure
+$ExcludeSet = [System.Collections.Generic.HashSet[string]]::new()
+if ($ExcludeFile -and (Test-Path $ExcludeFile)) {
+    foreach ($line in (Get-Content -Path $ExcludeFile -Encoding UTF8)) {
+        $trimmed = $line.Trim()
+        if ($trimmed -eq "" -or $trimmed.StartsWith("#")) {
+            continue
+        }
+        $id = ($trimmed -split "`t")[0].Trim()
+        if ($id -ne "") {
+            [void]$ExcludeSet.Add($id)
+        }
+    }
+    Write-Host "$($ExcludeSet.Count) vidéo(s) à exclure chargée(s) depuis $ExcludeFile" -ForegroundColor DarkYellow
+}
 
 $UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
 
@@ -109,7 +133,7 @@ while ($Queue.Count -gt 0) {
     $videoId = $current.Id
     $depth = $current.Depth
 
-    if ($Visited.ContainsKey($videoId) -or $depth -gt $MaxDepth) {
+    if ($Visited.ContainsKey($videoId) -or $depth -gt $MaxDepth -or $ExcludeSet.Contains($videoId)) {
         continue
     }
 
