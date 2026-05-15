@@ -95,7 +95,7 @@ elseif ($CookiesFile) {
         Write-Error "Le fichier cookies '$CookiesFile' n'existe pas."
         exit 1
     }
-    $ytdlpCookieArgs = @("--cookies", $CookiesFile)
+    $ytdlpCookieArgs = @("--cookies", $CookiesFile, "--no-cookies-update")
 }
 
 # Lecture du fichier d'entrée
