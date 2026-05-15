@@ -1,15 +1,17 @@
 <#
 .SYNOPSIS
-    Capture une image (frame) de chaque vidéo YouTube à partir d'une liste d'identifiants.
+    Capture une ou plusieurs images (frames) de chaque vidéo YouTube à partir d'une liste d'identifiants.
 
 .DESCRIPTION
     Utilise yt-dlp pour obtenir l'URL directe du flux vidéo, puis ffmpeg pour extraire
-    une frame à un timestamp donné. Seules quelques secondes de vidéo sont téléchargées
+    une frame à chaque timestamp donné. Seules quelques secondes de vidéo sont téléchargées
     grâce au seek côté serveur (HTTP range request).
 
+    Lorsque plusieurs timestamps sont spécifiés, l'URL du flux est récupérée une seule
+    fois par vidéo, ce qui est nettement plus rapide que de relancer le script plusieurs fois.
+
     Les captures sont nommées selon le format : <videoId>_<timestamp>s.jpg
-    Ce nommage permet de relancer le script avec un timestamp différent sans écraser
-    les captures précédentes.
+    Ce nommage permet de distinguer les captures à différents timestamps.
 
 .PARAMETER InputFile
     Chemin vers un fichier texte contenant un identifiant de vidéo par ligne.
@@ -20,21 +22,27 @@
     Répertoire de sortie pour les captures. Créé automatiquement si inexistant.
 
 .PARAMETER SeekSeconds
-    Timestamp en secondes auquel capturer l'image (par défaut 0 = première frame).
+    Un ou plusieurs timestamps en secondes auxquels capturer les images.
+    Accepte des valeurs décimales (ex: 0, 1.5, 3).
+    Par défaut : 0 (première frame).
 
 .PARAMETER MaxHeight
     Hauteur maximale du flux vidéo à utiliser (par défaut 720).
+    Utiliser une valeur plus élevée (1080, 1440, 2160) pour une meilleure définition.
 
 .PARAMETER DelayMs
-    Délai en millisecondes entre chaque capture (par défaut 500ms).
+    Délai en millisecondes entre chaque vidéo (par défaut 500ms).
 
 .PARAMETER SkipExisting
-    Si spécifié, ignore les vidéos dont la capture existe déjà dans le répertoire de sortie.
+    Si spécifié, ignore les captures qui existent déjà dans le répertoire de sortie.
+    La vérification est faite par timestamp : si une vidéo a déjà une capture à 0s
+    mais pas à 1.5s, seule la capture à 1.5s sera effectuée.
 
 .EXAMPLE
     .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames
-    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SeekSeconds 5
-    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SkipExisting
+    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -MaxHeight 1080
+    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SeekSeconds 0,1.5,5
+    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SeekSeconds 0,1.5 -SkipExisting
 #>
 param (
     [Parameter(Mandatory = $true)]
@@ -43,7 +51,7 @@ param (
     [Parameter(Mandatory = $true)]
     [string]$OutputDir,
 
-    [double]$SeekSeconds = 0,
+    [double[]]$SeekSeconds = @(0),
 
     [int]$MaxHeight = 720,
 
@@ -94,7 +102,11 @@ if (-not (Test-Path $OutputDir)) {
     New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 }
 
-Write-Host "Capture de $($videoIds.Count) vidéos (seek: ${SeekSeconds}s, résolution max: ${MaxHeight}p)..." -ForegroundColor Cyan
+$timestampTags = $SeekSeconds | ForEach-Object { $_.ToString("0.##").Replace(",", ".") }
+$timestampDisplay = ($timestampTags | ForEach-Object { "${_}s" }) -join ", "
+
+Write-Host "Capture de $($videoIds.Count) vidéo(s) x $($SeekSeconds.Count) timestamp(s) ($timestampDisplay)" -ForegroundColor Cyan
+Write-Host "Résolution max : ${MaxHeight}p" -ForegroundColor Cyan
 Write-Host "Répertoire de sortie : $OutputDir" -ForegroundColor Cyan
 Write-Host ""
 
@@ -105,59 +117,77 @@ $failed = 0
 for ($i = 0; $i -lt $videoIds.Count; $i++) {
     $videoId = $videoIds[$i]
     $index = $i + 1
-    $timestampTag = $SeekSeconds.ToString("0.##").Replace(",", ".")
-    $outputFile = Join-Path $OutputDir "${videoId}_${timestampTag}s.jpg"
 
-    Write-Host "[$index/$($videoIds.Count)] $videoId" -ForegroundColor Gray -NoNewline
+    # Déterminer quels timestamps restent à capturer
+    $pendingTimestamps = [System.Collections.Generic.List[int]]::new()
+    for ($t = 0; $t -lt $SeekSeconds.Count; $t++) {
+        $tag = $timestampTags[$t]
+        $outputFile = Join-Path $OutputDir "${videoId}_${tag}s.jpg"
+        if ($SkipExisting -and (Test-Path $outputFile)) {
+            $skipped++
+        }
+        else {
+            $pendingTimestamps.Add($t)
+        }
+    }
 
-    # Vérifier si la capture existe déjà
-    if ($SkipExisting -and (Test-Path $outputFile)) {
-        Write-Host " -> déjà capturé, ignoré" -ForegroundColor DarkYellow
-        $skipped++
+    if ($pendingTimestamps.Count -eq 0) {
+        Write-Host "[$index/$($videoIds.Count)] $videoId -> toutes les captures existent, ignoré" -ForegroundColor DarkYellow
         continue
     }
 
-    # Récupérer l'URL directe du flux vidéo
+    Write-Host "[$index/$($videoIds.Count)] $videoId" -ForegroundColor Gray -NoNewline
+
+    # Récupérer l'URL directe du flux vidéo (une seule fois par vidéo)
     try {
         $streamUrl = & yt-dlp --get-url -f "bv*[height<=${MaxHeight}]" "https://www.youtube.com/watch?v=$videoId" 2>$null
         if ([string]::IsNullOrWhiteSpace($streamUrl)) {
             Write-Host " -> ERREUR: yt-dlp n'a retourné aucune URL" -ForegroundColor Red
-            $failed++
+            $failed += $pendingTimestamps.Count
             continue
         }
     }
     catch {
         Write-Host " -> ERREUR yt-dlp: $_" -ForegroundColor Red
-        $failed++
+        $failed += $pendingTimestamps.Count
         continue
     }
 
-    # Extraire la frame avec ffmpeg
-    try {
-        $ffmpegArgs = @(
-            "-ss", "$SeekSeconds",
-            "-i", "$streamUrl",
-            "-frames:v", "1",
-            "-q:v", "2",
-            "-update", "1",
-            "-y",
-            "$outputFile"
-        )
-        $ffmpegOutput = & ffmpeg @ffmpegArgs 2>&1
-        if (Test-Path $outputFile) {
-            $size = (Get-Item $outputFile).Length
-            Write-Host " -> OK ($('{0:N0}' -f ($size / 1KB)) Ko)" -ForegroundColor Green
-            $succeeded++
+    # Extraire une frame pour chaque timestamp
+    $results = @()
+    foreach ($t in $pendingTimestamps) {
+        $seek = $SeekSeconds[$t]
+        $tag = $timestampTags[$t]
+        $outputFile = Join-Path $OutputDir "${videoId}_${tag}s.jpg"
+
+        try {
+            $ffmpegArgs = @(
+                "-ss", "$seek",
+                "-i", "$streamUrl",
+                "-frames:v", "1",
+                "-q:v", "2",
+                "-update", "1",
+                "-y",
+                "$outputFile"
+            )
+            $ffmpegOutput = & ffmpeg @ffmpegArgs 2>&1
+            if (Test-Path $outputFile) {
+                $size = (Get-Item $outputFile).Length
+                $results += "${tag}s OK ($('{0:N0}' -f ($size / 1KB)) Ko)"
+                $succeeded++
+            }
+            else {
+                $results += "${tag}s ERREUR"
+                $failed++
+            }
         }
-        else {
-            Write-Host " -> ERREUR: ffmpeg n'a pas créé le fichier" -ForegroundColor Red
+        catch {
+            $results += "${tag}s ERREUR: $_"
             $failed++
         }
     }
-    catch {
-        Write-Host " -> ERREUR ffmpeg: $_" -ForegroundColor Red
-        $failed++
-    }
+
+    Write-Host " -> $($results -join ' | ')" -ForegroundColor Green
 
     if ($i -lt $videoIds.Count - 1 -and $DelayMs -gt 0) {
         Start-Sleep -Milliseconds $DelayMs
