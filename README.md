@@ -6,25 +6,21 @@ Cette série propose un jeu de morpion (tic-tac-toe) jouable via les écrans de 
 
 Dans chaque vidéo, un tableau blanc en arrière-plan affiche un **nombre** et une **lettre** en aimants magnétiques. En ordonnant les lettres par leurs nombres, on reconstitue un message caché.
 
-## Message caché
-
-> Félicitations vous avez passé trop de temps a regarder mes vidéos envoyez moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
-
 ## Méthode
 
-1. **Parcours du graphe** : exploration BFS des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série
-2. **Capture de frames** : extraction d'images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière)
-3. **Recadrage** : extraction de la zone du tableau blanc par crop ffmpeg
-4. **OCR via Claude** : envoi des images recadrées à l'API Claude (vision) pour extraire nombre + lettre
-5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l'OCR
-6. **Reconstitution** : tri par nombre et concaténation des lettres
+1. **Parcours du graphe** : exploration BFS des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série.
+2. **Capture de frames** : extraction d'images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière).
+3. **Recadrage** : extraction de la zone du tableau blanc par crop ffmpeg.
+4. **OCR via Claude** : envoi des images recadrées à l'API Claude (vision) pour extraire nombre + lettre.
+5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l'OCR.
+6. **Reconstitution** : tri par nombre et concaténation des lettres.
 
 ## Graphe des vidéos
 
 Le graphe complet au format DOT et SVG est inclus dans le dépôt. Les noeuds du SVG sont cliquables et mènent vers les vidéos YouTube correspondantes.
 
 - [`exclarogatif-morpion-video-graph.dot`](exclarogatif-morpion-video-graph.dot) - Format Graphviz DOT
-- [`exclarogatif-morpion-video-graph.svg`](exclarogatif-morpion-video-graph.svg) - Rendu SVG interactif
+- [`exclarogatif-morpion-video-graph.svg`](exclarogatif-morpion-video-graph.svg) - Rendu SVG interactif (généré via [Edotor](https://edotor.net/))
 
 ## Scripts
 
@@ -38,7 +34,7 @@ Le graphe complet au format DOT et SVG est inclus dans le dépôt. Les noeuds du
 
 ### Get-YouTubeGraph.ps1
 
-Parcourt les écrans de fin des vidéos YouTube par BFS pour générer un graphe (DOT, CSV ou liste).
+Parcourt les écrans de fin et les descriptions des vidéos YouTube par BFS pour générer un graphe (DOT, CSV ou liste).
 
 ```powershell
 # Graphe DOT depuis la vidéo de départ
@@ -55,6 +51,7 @@ Parcourt les écrans de fin des vidéos YouTube par BFS pour générer un graphe
 ```
 
 Sources de liens extraites :
+
 - `endscreenElementRenderer` : écrans de fin configurés par le créateur
 - `structuredDescriptionVideoLockupRenderer` : vidéos intégrées dans la description
 
@@ -103,15 +100,6 @@ python Review-Indices.py frames_crop indices.csv
 ```
 
 Raccourcis clavier : `Entrée` (suivant), `Shift+Entrée` (précédent), `Alt+N` (nombre), `Alt+L` (lettre), `Alt+X` (pas de code), `Ctrl+S` (sauvegarder).
-
-### Rename-Frames.py
-
-Renomme les images en les préfixant avec leur numéro et lettre, et inscrit le titre dans les métadonnées EXIF.
-
-```bash
-python Rename-Frames.py frames_crop README.md
-# jgEbvhS80JM_1.5s.jpg -> 001_F_jgEbvhS80JM.jpg
-```
 
 ### Add-YouTubeLinksToSvg.ps1
 
@@ -258,12 +246,10 @@ Post-traitement d'un SVG généré par Graphviz pour rendre les noeuds cliquable
 | `Sb-n3JB7YME` | 130 | L |
 | `8EHRSTAyUY0` | 131 | E |
 
-> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice 50/V. Le vidéaste a vraisemblablement oublié de changer le tableau entre ces deux vidéos. Cinq vidéos du graphe ne contiennent aucun code sur le tableau (`65tS5PY8LdU`, `RyvWYc7Fp-U`, `ZFCxZMLZrpA`, `tXYhgZ_rXs8`, `zAy6U8A7kBo`).
+> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice "50 V". Le vidéaste a vraisemblablement oublié de changer le tableau entre ces deux vidéos. Cinq vidéos du graphe ne contiennent aucun code sur le tableau (`58X2c66QxPs`, `65tS5PY8LdU`, `9J3nwusXamY`, `RyvWYc7Fp-U`, `tXYhgZ_rXs8`, `UnDjokbZjbs`, `zAy6U8A7kBo`, `ZFCxZMLZrpA`).
 
-## Licence
+## Message caché
 
-Ce dépôt contient uniquement les scripts d'analyse. Les vidéos sont la propriété d'[exclarrogatif](https://www.youtube.com/@exclarrogatif).
-
-Message caché :
+Finalement, le message caché est :
 
 > Félicitations vous avez passé trop de temps a regarder mes vidéos envoyez moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
