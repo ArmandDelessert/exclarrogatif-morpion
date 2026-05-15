@@ -38,11 +38,21 @@
     La vérification est faite par timestamp : si une vidéo a déjà une capture à 0s
     mais pas à 1.5s, seule la capture à 1.5s sera effectuée.
 
+.PARAMETER CookiesBrowser
+    Nom du navigateur depuis lequel extraire les cookies YouTube (ex: edge, chrome, firefox).
+    Nécessaire lorsque YouTube bloque les requêtes non authentifiées.
+    Le navigateur doit être fermé pour que yt-dlp puisse lire la base de cookies.
+
+.PARAMETER CookiesFile
+    Chemin vers un fichier cookies au format Netscape, comme alternative à -CookiesBrowser
+    si le navigateur ne peut pas être fermé.
+
 .EXAMPLE
     .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames
     .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -MaxHeight 1080
     .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SeekSeconds 0,1.5,5
-    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SeekSeconds 0,1.5 -SkipExisting
+    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -CookiesBrowser edge
+    .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -CookiesFile cookies.txt
 #>
 param (
     [Parameter(Mandatory = $true)]
@@ -57,7 +67,11 @@ param (
 
     [int]$DelayMs = 500,
 
-    [switch]$SkipExisting
+    [switch]$SkipExisting,
+
+    [string]$CookiesBrowser,
+
+    [string]$CookiesFile
 )
 
 Set-StrictMode -Version Latest
@@ -69,6 +83,19 @@ foreach ($tool in @("yt-dlp", "ffmpeg")) {
         Write-Error "$tool n'est pas installé ou n'est pas dans le PATH."
         exit 1
     }
+}
+
+# Construction des arguments cookies pour yt-dlp
+$ytdlpCookieArgs = @()
+if ($CookiesBrowser) {
+    $ytdlpCookieArgs = @("--cookies-from-browser", $CookiesBrowser)
+}
+elseif ($CookiesFile) {
+    if (-not (Test-Path $CookiesFile)) {
+        Write-Error "Le fichier cookies '$CookiesFile' n'existe pas."
+        exit 1
+    }
+    $ytdlpCookieArgs = @("--cookies", $CookiesFile)
 }
 
 # Lecture du fichier d'entrée
@@ -140,7 +167,8 @@ for ($i = 0; $i -lt $videoIds.Count; $i++) {
 
     # Récupérer l'URL directe du flux vidéo (une seule fois par vidéo)
     try {
-        $streamUrl = & yt-dlp --get-url -f "bv*[height<=${MaxHeight}]" "https://www.youtube.com/watch?v=$videoId" 2>$null
+        $ytdlpArgs = @("--get-url", "-f", "bv*[height<=${MaxHeight}]") + $ytdlpCookieArgs + @("https://www.youtube.com/watch?v=$videoId")
+        $streamUrl = & yt-dlp @ytdlpArgs 2>$null
         if ([string]::IsNullOrWhiteSpace($streamUrl)) {
             Write-Host " -> ERREUR: yt-dlp n'a retourné aucune URL" -ForegroundColor Red
             $failed += $pendingTimestamps.Count

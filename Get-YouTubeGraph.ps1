@@ -26,10 +26,16 @@
     Les lignes vides et les lignes commençant par # sont ignorées.
     Le format TSV (ID<tab>titre) est supporté : seul le premier champ est utilisé.
 
+.PARAMETER CookiesFile
+    Chemin vers un fichier cookies au format Netscape pour authentifier les requêtes YouTube.
+    Nécessaire lorsque YouTube bloque les requêtes non authentifiées (détection anti-bot).
+    Peut être généré avec l'extension "Get cookies.txt LOCALLY" ou via yt-dlp.
+
 .EXAMPLE
     .\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -OutputFormat List
     .\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -OnlySameChannel -MaxDepth 3
     .\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -ExcludeFile already-visited.txt
+    .\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -CookiesFile cookies.txt
 #>
 param (
     [Parameter(Mandatory = $true)]
@@ -44,7 +50,9 @@ param (
 
     [int]$DelayMs = 500,
 
-    [string]$ExcludeFile
+    [string]$ExcludeFile,
+
+    [string]$CookiesFile
 )
 
 Set-StrictMode -Version Latest
@@ -68,13 +76,41 @@ if ($ExcludeFile -and (Test-Path $ExcludeFile)) {
 
 $UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
 
+# Chargement des cookies depuis un fichier Netscape
+$CookieHeader = $null
+if ($CookiesFile) {
+    if (-not (Test-Path $CookiesFile)) {
+        Write-Error "Le fichier cookies '$CookiesFile' n'existe pas."
+        exit 1
+    }
+    $cookiePairs = [System.Collections.Generic.List[string]]::new()
+    foreach ($line in (Get-Content -Path $CookiesFile -Encoding UTF8)) {
+        $trimmed = $line.Trim()
+        if ($trimmed -eq "" -or $trimmed.StartsWith("#")) {
+            continue
+        }
+        $fields = $trimmed -split "`t"
+        if ($fields.Count -ge 7 -and $fields[0] -match '\.youtube\.com') {
+            $cookiePairs.Add("$($fields[5])=$($fields[6])")
+        }
+    }
+    if ($cookiePairs.Count -gt 0) {
+        $CookieHeader = $cookiePairs -join "; "
+        Write-Host "$($cookiePairs.Count) cookie(s) YouTube chargé(s) depuis $CookiesFile" -ForegroundColor DarkYellow
+    }
+}
+
 function Get-EndScreenData {
     param ([string]$VideoId)
 
     $url = "https://www.youtube.com/watch?v=$VideoId"
+    $headers = @{ "User-Agent" = $UserAgent }
+    if ($null -ne $CookieHeader) {
+        $headers["Cookie"] = $CookieHeader
+    }
 
     try {
-        $response = Invoke-WebRequest -Uri $url -Headers @{ "User-Agent" = $UserAgent } -UseBasicParsing -TimeoutSec 15
+        $response = Invoke-WebRequest -Uri $url -Headers $headers -UseBasicParsing -TimeoutSec 15
         $html = $response.Content
     }
     catch {
