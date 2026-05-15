@@ -32,7 +32,7 @@ def extract_index_from_image(client, image_path):
     media_type = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
 
     response = client.messages.create(
-        model="claude-haiku-4-20250414",
+        model="claude-haiku-4-5-20251001",
         max_tokens=50,
         messages=[
             {
@@ -95,7 +95,7 @@ def main():
         sys.exit(1)
 
     print(f"Extraction des indices de {len(images)} image(s)...")
-    print(f"Modèle: claude-haiku-4-20250414")
+    print(f"Modèle: claude-haiku-4-5-20251001")
     print()
 
     results = []
