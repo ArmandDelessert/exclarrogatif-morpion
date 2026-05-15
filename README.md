@@ -1,4 +1,127 @@
-# Titre
+# Morpion exclarrogatif - Message caché
+
+Outils d'analyse de la série de vidéos YouTube interactives [**Morpion**](https://www.youtube.com/watch?v=UnDjokbZjbs) de la chaîne [exclarrogatif](https://www.youtube.com/@exclarrogatif).
+
+Cette série propose un jeu de morpion (tic-tac-toe) jouable via les écrans de fin YouTube : chaque vidéo propose plusieurs choix menant à d'autres vidéos, formant un graphe d'environ 150 vidéos interconnectées.
+
+Dans chaque vidéo, un tableau blanc en arrière-plan affiche un **nombre** et une **lettre** en aimants magnétiques. En ordonnant les lettres par leurs nombres, on reconstitue un message caché.
+
+## Message caché
+
+> Félicitations vous avez passé trop de temps a regarder mes vidéos envoyez moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
+
+## Méthode
+
+1. **Parcours du graphe** : exploration BFS des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série
+2. **Capture de frames** : extraction d'images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière)
+3. **Recadrage** : extraction de la zone du tableau blanc par crop ffmpeg
+4. **OCR via Claude** : envoi des images recadrées à l'API Claude (vision) pour extraire nombre + lettre
+5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l'OCR
+6. **Reconstitution** : tri par nombre et concaténation des lettres
+
+## Graphe des vidéos
+
+Le graphe complet au format DOT et SVG est inclus dans le dépôt. Les noeuds du SVG sont cliquables et mènent vers les vidéos YouTube correspondantes.
+
+- [`exclarogatif-morpion-video-graph.dot`](exclarogatif-morpion-video-graph.dot) - Format Graphviz DOT
+- [`exclarogatif-morpion-video-graph.svg`](exclarogatif-morpion-video-graph.svg) - Rendu SVG interactif
+
+## Scripts
+
+### Prérequis
+
+- **PowerShell 5.1+** (inclus dans Windows)
+- **Python 3.10+** avec `pip install anthropic pillow`
+- [**yt-dlp**](https://github.com/yt-dlp/yt-dlp) dans le PATH
+- [**ffmpeg**](https://ffmpeg.org/) dans le PATH
+- Variable d'environnement `ANTHROPIC_API_KEY` pour l'extraction OCR
+
+### Get-YouTubeGraph.ps1
+
+Parcourt les écrans de fin des vidéos YouTube par BFS pour générer un graphe (DOT, CSV ou liste).
+
+```powershell
+# Graphe DOT depuis la vidéo de départ
+.\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -OutputFormat GraphDOT > graph.dot
+
+# Limiter au même channel, profondeur max 3
+.\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -OnlySameChannel -MaxDepth 3
+
+# Avec cookies pour éviter le blocage anti-bot
+.\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -CookiesFile cookies.txt
+
+# Exclure des vidéos déjà visitées
+.\Get-YouTubeGraph.ps1 -StartVideoId "UnDjokbZjbs" -ExcludeFile already-visited.txt
+```
+
+Sources de liens extraites :
+- `endscreenElementRenderer` : écrans de fin configurés par le créateur
+- `structuredDescriptionVideoLockupRenderer` : vidéos intégrées dans la description
+
+### Get-YouTubeFrames.ps1
+
+Capture une ou plusieurs frames de chaque vidéo YouTube sans télécharger la vidéo entière.
+
+```powershell
+# Capture basique (frame à t=0)
+.\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames
+
+# Plusieurs timestamps, résolution 1080p
+.\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SeekSeconds 0,1.5,3 -MaxHeight 1080
+
+# Ignorer les captures existantes + cookies
+.\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SkipExisting -CookiesFile cookies.txt
+```
+
+Le fichier d'entrée contient un identifiant de vidéo par ligne (format TSV supporté).
+
+### Crop-Images.ps1
+
+Recadre un lot d'images à l'aide de ffmpeg.
+
+```powershell
+.\Crop-Images.ps1 -InputDir frames -OutputDir frames_crop -Width 400 -Height 320 -X 70 -Y 288
+```
+
+### Extract-Indices.py
+
+Envoie chaque image recadrée à l'API Claude (vision) pour extraire le nombre et la lettre.
+
+```bash
+python Extract-Indices.py frames_crop indices.csv
+```
+
+Produit un CSV avec les colonnes : `video_id`, `filename`, `number`, `letter`, `raw`.
+
+### Review-Indices.py
+
+Interface web locale pour corriger les résultats de l'OCR. Pré-remplit les champs depuis le CSV existant.
+
+```bash
+python Review-Indices.py frames_crop indices.csv
+# Ouvre http://localhost:8080
+```
+
+Raccourcis clavier : `Entrée` (suivant), `Shift+Entrée` (précédent), `Alt+N` (nombre), `Alt+L` (lettre), `Alt+X` (pas de code), `Ctrl+S` (sauvegarder).
+
+### Rename-Frames.py
+
+Renomme les images en les préfixant avec leur numéro et lettre, et inscrit le titre dans les métadonnées EXIF.
+
+```bash
+python Rename-Frames.py frames_crop README.md
+# jgEbvhS80JM_1.5s.jpg -> 001_F_jgEbvhS80JM.jpg
+```
+
+### Add-YouTubeLinksToSvg.ps1
+
+Post-traitement d'un SVG généré par Graphviz pour rendre les noeuds cliquables (liens YouTube).
+
+```powershell
+.\Add-YouTubeLinksToSvg.ps1 -InputSvg graph.svg -OutputSvg graph-links.svg
+```
+
+## Tableau des indices
 
 | ID de vidéo | Nombre | Lettre |
 | ----------- | ------ | ------ |
@@ -134,6 +257,12 @@
 | `plJ554i9pIw` | 129 | L |
 | `Sb-n3JB7YME` | 130 | L |
 | `8EHRSTAyUY0` | 131 | E |
+
+> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice 50/V. Le vidéaste a vraisemblablement oublié de changer le tableau entre ces deux vidéos. Cinq vidéos du graphe ne contiennent aucun code sur le tableau (`65tS5PY8LdU`, `RyvWYc7Fp-U`, `ZFCxZMLZrpA`, `tXYhgZ_rXs8`, `zAy6U8A7kBo`).
+
+## Licence
+
+Ce dépôt contient uniquement les scripts d'analyse. Les vidéos sont la propriété d'[exclarrogatif](https://www.youtube.com/@exclarrogatif).
 
 Message caché :
 
