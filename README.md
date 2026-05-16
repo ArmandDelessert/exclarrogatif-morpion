@@ -20,10 +20,10 @@ Pour le découvrir, il fallait explorer l’intégralité du graphe de vidéos p
 
 ## Méthode
 
-1. **Parcours du graphe** : exploration BFS des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série.
+1. **Parcours du graphe** : [exploration BFS](https://fr.wikipedia.org/wiki/Algorithme_de_parcours_en_largeur) des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série.
 2. **Capture de frames** : extraction d’images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière).
 3. **Recadrage** : extraction de la zone du tableau blanc par crop FFmpeg.
-4. **OCR via Claude** : envoi des images recadrées à l’API Claude (vision) pour extraire nombre + lettre (mais il a fait beaucoup d’erreurs).
+4. **OCR via Claude** : envoi des images recadrées à l’API Claude (vision) pour extraire nombre + lettre, mais il a fait beaucoup d’erreurs.
 5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l’OCR facilement.
 6. **Reconstitution** : tri par nombre et concaténation des lettres.
 
@@ -73,13 +73,13 @@ Capture une ou plusieurs frames de chaque vidéo YouTube sans télécharger la v
 
 ```powershell
 # Capture basique (frame à t=0)
-.\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames
+.\Get-YouTubeFrames.ps1 -InputFile videos.tsv -OutputDir frames
 
 # Plusieurs timestamps, résolution 1080p
-.\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SeekSeconds 0,1.5,3 -MaxHeight 1080
+.\Get-YouTubeFrames.ps1 -InputFile videos.tsv -OutputDir frames -SeekSeconds 0,1.5,3 -MaxHeight 1080
 
 # Ignorer les captures existantes + cookies
-.\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SkipExisting -CookiesFile cookies.txt
+.\Get-YouTubeFrames.ps1 -InputFile videos.tsv -OutputDir frames -SkipExisting -CookiesFile cookies.txt
 ```
 
 Le fichier d’entrée contient un identifiant de vidéo par ligne (format TSV supporté).
@@ -114,6 +114,8 @@ python Review-Indices.py frames_crop indices.csv
 Raccourcis clavier : `Entrée` (suivant), `Shift+Entrée` (précédent), `Alt+N` (nombre), `Alt+L` (lettre), `Alt+X` (pas de code), `Ctrl+S` (sauvegarder).
 
 ## Tableau des indices
+
+Après avoir passé en revue toutes les images, on trouve les 131 lettres du tableau ci-dessous.
 
 | ID de vidéo | Nombre | Lettre |
 | ----------- | ------ | ------ |
@@ -254,6 +256,6 @@ Raccourcis clavier : `Entrée` (suivant), `Shift+Entrée` (précédent), `Alt+N`
 
 ## Message caché
 
-En ordonnant les 131 lettres par leurs nombres, on obtient :
+Finalement on obtient le message suivant :
 
 > Félicitations vous avez passé trop de temps à regarder mes vidéos envoyez moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
