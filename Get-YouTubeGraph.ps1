@@ -18,7 +18,7 @@
 .PARAMETER OutputFormat
     Format de sortie : List, GraphDOT ou GraphCSV.
     List produit un fichier TSV avec les colonnes :
-    video_id, title, duration (secondes), upload_date, channel, unlisted.
+    video_id, title, duration (secondes), channel, upload_date, unlisted.
 
 .PARAMETER DelayMs
     Délai en millisecondes entre chaque requête HTTP (par défaut 500ms).
