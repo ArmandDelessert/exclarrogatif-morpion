@@ -258,4 +258,9 @@ Après avoir passé en revue toutes les images, on trouve les 131 lettres du tab
 
 Finalement on obtient le message suivant :
 
-> Félicitations vous avez passé trop de temps à regarder mes vidéos envoyez moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
+> Félicitations, vous avez passé trop de temps à regarder mes vidéos, envoyez-moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
+
+## Crédits
+
+- Jeu interactif : [exclarrogatif](https://www.youtube.com/@exclarrogatif)
+- Réalisé avec l'aide de [Claude Code](https://claude.ai/code)
