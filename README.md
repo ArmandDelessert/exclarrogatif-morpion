@@ -2,7 +2,7 @@
 
 Tout a commencé avec la vidéo « [**Affrontez-moi au morpion !**](https://www.youtube.com/watch?v=UnDjokbZjbs) » de la chaîne YouTube « [**exclarrogatif**](https://www.youtube.com/@exclarrogatif) ». Le concept : un jeu de morpion (tic-tac-toe) entièrement jouable via les vidéos suggérées dans les écrans de fin. Chaque vidéo propose plusieurs choix menant à d’autres vidéos permettant de poursuivre la partie de morpion.
 
-Je me prête au jeu, je joue une partie et j’arrive sur un match nul. Il n’y a que 3 configuration finales possibles pour un match nul me dit mon adversaire. Et, oh surprise, il me communique un morceau de mot de passe ! Il faut trouver les 2 autres configurations de match nul pour obtenir les 3 parties du mot de passe.
+Je me prête au jeu, je joue une partie et j’arrive sur un match nul. Il n’y a que 3 configurations finales possibles pour un match nul me dit mon adversaire. Et, oh surprise, il me communique un morceau de mot de passe ! Il faut trouver les 2 autres configurations de match nul pour obtenir les 3 parties du mot de passe.
 
 Je recommence quelques parties, et j’obtiens les 3 parties du mot de passe `v=vX`, `lM5l` et `zCmRU`, ce qui donne :
 
@@ -12,9 +12,9 @@ Et c’est évidemment l’ID d’une vidéo YouTube :
 
 [BINI | ‘Tic Tac Toe’ Official Lyric Video](https://www.youtube.com/watch?v=vXlM5lzCmRU)
 
-Amusé, je continue encore quelques parties. Au fil des parties, l’auteur de ce jeu me dit qu’il a du tourner environ **150 vidéos**. Je commence alors à découvrir l’ampleur du travail pour arriver à ce jeu vidéo, comme il l’appel !
+Amusé, je continue encore quelques parties. Au fil des parties, l’auteur de ce jeu me dit qu’il a du tourner environ **150 vidéos**. Je commence alors à découvrir l’ampleur du travail pour arriver à ce jeu vidéo, comme il l’appelle !
 
-Mais, dans une vidéo de fin de partie, le vidéaste porte rapidement l’attention du spectateur sur un petit tableau blanc, posé dans une étagère, à gauche dans l’arrière-plan. C’est le tableau utilisé dans l’introduction de la première vidéo. Il affiche un **nombre** et une **lettre** en aimant magnétique. Je reviens sur la vidéo précédente, il affiche un autre nombre et une autre lettre. Je me rend compte qu’à chaque vidéo un nombre et une lettre différents sont disposés sur ce tableau. Un message caché ? Faut-il concaténer toutes les lettres dans l’ordre des nombres ?
+Mais, dans une vidéo de fin de partie, le vidéaste porte rapidement l’attention du spectateur sur un petit tableau blanc, posé dans une étagère, à gauche dans l’arrière-plan. C’est le tableau utilisé dans l’introduction de la première vidéo. Il affiche un **nombre** et une **lettre** en aimant magnétique. Je reviens sur la vidéo précédente, il affiche un autre nombre et une autre lettre. Je me rends compte qu’à chaque vidéo un nombre et une lettre différents sont disposés sur ce tableau. Un message caché ? Faut-il concaténer toutes les lettres dans l’ordre des nombres ?
 
 Pour le découvrir, il fallait explorer l’intégralité du graphe de vidéos pour relever chaque indice. Un travail fastidieux à la main… mais gérable avec les bons outils !
 
