@@ -17,6 +17,8 @@
 
 .PARAMETER OutputFormat
     Format de sortie : List, GraphDOT ou GraphCSV.
+    List produit un fichier TSV avec les colonnes :
+    video_id, title, duration (secondes), upload_date, channel, unlisted.
 
 .PARAMETER DelayMs
     Délai en millisecondes entre chaque requête HTTP (par défaut 500ms).
@@ -128,6 +130,26 @@ function Get-EndScreenData {
         $channelId = $Matches[1]
     }
 
+    $channelName = $null
+    if ($html -match '"ownerChannelName"\s*:\s*"([^"]+)"') {
+        $channelName = $Matches[1]
+    }
+
+    $duration = $null
+    if ($html -match '"lengthSeconds"\s*:\s*"(\d+)"') {
+        $duration = [int]$Matches[1]
+    }
+
+    $publishDate = $null
+    if ($html -match '"publishDate"\s*:\s*"([^"]+)"') {
+        $publishDate = $Matches[1]
+    }
+
+    $unlisted = $null
+    if ($html -match '"isUnlisted"\s*:\s*(true|false)') {
+        $unlisted = $Matches[1] -eq "true"
+    }
+
     $linkedVideoIds = [System.Collections.Generic.List[string]]::new()
 
     # Source 1 : End screens (éléments configurés par le créateur en fin de vidéo)
@@ -151,11 +173,15 @@ function Get-EndScreenData {
     return [PSCustomObject]@{
         Title          = $title
         ChannelId      = $channelId
+        ChannelName    = $channelName
+        Duration       = $duration
+        PublishDate    = $publishDate
+        Unlisted       = $unlisted
         LinkedVideoIds = $linkedVideoIds
     }
 }
 
-$Visited = [System.Collections.Generic.Dictionary[string, string]]::new()
+$Visited = [System.Collections.Generic.Dictionary[string, PSCustomObject]]::new()
 $Edges = [System.Collections.Generic.List[PSCustomObject]]::new()
 $Queue = [System.Collections.Generic.Queue[PSCustomObject]]::new()
 
@@ -178,17 +204,17 @@ while ($Queue.Count -gt 0) {
     $data = Get-EndScreenData -VideoId $videoId
 
     if ($null -eq $data) {
-        $Visited[$videoId] = "(erreur)"
+        $Visited[$videoId] = [PSCustomObject]@{ Title = "(erreur)"; ChannelName = $null; Duration = $null; PublishDate = $null; Unlisted = $null }
         continue
     }
 
     if ($OnlySameChannel -and $null -ne $startChannelId -and $data.ChannelId -ne $startChannelId) {
-        $Visited[$videoId] = $data.Title
+        $Visited[$videoId] = [PSCustomObject]@{ Title = $data.Title; ChannelName = $data.ChannelName; Duration = $data.Duration; PublishDate = $data.PublishDate; Unlisted = $data.Unlisted }
         Write-Host "  Ignorée (chaîne différente : $($data.ChannelId))" -ForegroundColor DarkYellow
         continue
     }
 
-    $Visited[$videoId] = $data.Title
+    $Visited[$videoId] = [PSCustomObject]@{ Title = $data.Title; ChannelName = $data.ChannelName; Duration = $data.Duration; PublishDate = $data.PublishDate; Unlisted = $data.Unlisted }
 
     if ($null -eq $startChannelId -and $null -ne $data.ChannelId) {
         $startChannelId = $data.ChannelId
@@ -218,15 +244,21 @@ Write-Host ""
 
 switch ($OutputFormat) {
     "List" {
+        Write-Output "video_id`ttitle`tduration`tupload_date`tchannel`tunlisted"
         foreach ($entry in $Visited.GetEnumerator()) {
-            Write-Output "$($entry.Key)`t$($entry.Value)"
+            $v = $entry.Value
+            $dur = if ($null -ne $v.Duration) { $v.Duration } else { "" }
+            $pub = if ($null -ne $v.PublishDate) { $v.PublishDate } else { "" }
+            $ch = if ($null -ne $v.ChannelName) { $v.ChannelName } else { "" }
+            $unl = if ($null -ne $v.Unlisted) { $v.Unlisted.ToString().ToLower() } else { "" }
+            Write-Output "$($entry.Key)`t$($v.Title)`t$dur`t$pub`t$ch`t$unl"
         }
     }
     "GraphDOT" {
         Write-Output "digraph YouTubeEndScreens {"
         Write-Output "    rankdir=LR;"
         foreach ($entry in $Visited.GetEnumerator()) {
-            $title = ($entry.Value -replace '"', '\"')
+            $title = ($entry.Value.Title -replace '"', '\"')
             $url = "https://www.youtube.com/watch?v=$($entry.Key)"
             Write-Output "    `"$($entry.Key)`" [label=`"$title\n$($entry.Key)`" URL=`"$url`" target=`"_blank`"];"
         }
