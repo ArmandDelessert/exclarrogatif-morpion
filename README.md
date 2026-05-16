@@ -23,7 +23,7 @@ Pour le découvrir, il fallait explorer l’intégralité du graphe de vidéos p
 1. **Parcours du graphe** : exploration BFS des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série.
 2. **Capture de frames** : extraction d’images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière).
 3. **Recadrage** : extraction de la zone du tableau blanc par crop FFmpeg.
-4. **OCR via Claude** : envoi des images recadrées à l’API Claude (vision) pour extraire nombre + lettre, mais il a fait beaucoup d’erreurs.
+4. **OCR via Claude** : envoi des images recadrées à l’API Claude (vision) pour extraire nombre + lettre (mais il a fait beaucoup d’erreurs).
 5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l’OCR facilement.
 6. **Reconstitution** : tri par nombre et concaténation des lettres.
 
