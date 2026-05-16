@@ -22,9 +22,9 @@ Pour le découvrir, il fallait explorer l’intégralité du graphe de vidéos p
 
 1. **Parcours du graphe** : exploration BFS des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série.
 2. **Capture de frames** : extraction d’images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière).
-3. **Recadrage** : extraction de la zone du tableau blanc par crop ffmpeg.
-4. **OCR via Claude** : envoi des images recadrées à l’API Claude (vision) pour extraire nombre + lettre.
-5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l’OCR.
+3. **Recadrage** : extraction de la zone du tableau blanc par crop FFmpeg.
+4. **OCR via Claude** : envoi des images recadrées à l’API Claude (vision) pour extraire nombre + lettre, mais il a fait beaucoup d’erreurs.
+5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l’OCR facilement.
 6. **Reconstitution** : tri par nombre et concaténation des lettres.
 
 ## Graphe des vidéos
@@ -41,7 +41,7 @@ Le graphe complet au format DOT et SVG est inclus dans le dépôt. Les nœuds du
 - **PowerShell 5.1+** (inclus dans Windows)
 - **Python 3.10+** avec `pip install anthropic pillow`
 - [**yt-dlp**](https://github.com/yt-dlp/yt-dlp) dans le PATH
-- [**ffmpeg**](https://ffmpeg.org/) dans le PATH
+- [**FFmpeg**](https://ffmpeg.org/) dans le PATH
 - Variable d’environnement `ANTHROPIC_API_KEY` pour l’extraction OCR
 
 ### Get-YouTubeGraph.ps1
@@ -86,7 +86,7 @@ Le fichier d’entrée contient un identifiant de vidéo par ligne (format TSV s
 
 ### Crop-Images.ps1
 
-Recadre un lot d’images à l’aide de ffmpeg.
+Recadre un lot d’images à l’aide de FFmpeg.
 
 ```powershell
 .\Crop-Images.ps1 -InputDir frames -OutputDir frames_crop -Width 400 -Height 320 -X 70 -Y 288
