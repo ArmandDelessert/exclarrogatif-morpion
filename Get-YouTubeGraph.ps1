@@ -244,14 +244,14 @@ Write-Host ""
 
 switch ($OutputFormat) {
     "List" {
-        Write-Output "video_id`ttitle`tduration`tupload_date`tchannel`tunlisted"
+        Write-Output "video_id`ttitle`tduration`tchannel`tupload_date`tunlisted"
         foreach ($entry in $Visited.GetEnumerator()) {
             $v = $entry.Value
             $dur = if ($null -ne $v.Duration) { $v.Duration } else { "" }
-            $pub = if ($null -ne $v.PublishDate) { $v.PublishDate } else { "" }
             $ch = if ($null -ne $v.ChannelName) { $v.ChannelName } else { "" }
+            $pub = if ($null -ne $v.PublishDate) { $v.PublishDate } else { "" }
             $unl = if ($null -ne $v.Unlisted) { $v.Unlisted.ToString().ToLower() } else { "" }
-            Write-Output "$($entry.Key)`t$($v.Title)`t$dur`t$pub`t$ch`t$unl"
+            Write-Output "$($entry.Key)`t$($v.Title)`t$dur`t$ch`t$pub`t$unl"
         }
     }
     "GraphDOT" {
