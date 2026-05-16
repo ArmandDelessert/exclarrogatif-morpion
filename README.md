@@ -1,10 +1,10 @@
 # Morpion exclarrogatif - Message caché
 
-Outils d'analyse de la série de vidéos YouTube interactives [**Morpion**](https://www.youtube.com/watch?v=UnDjokbZjbs) de la chaîne [exclarrogatif](https://www.youtube.com/@exclarrogatif).
+Tout a commencé avec la vidéo [**Affrontez-moi au morpion !**](https://www.youtube.com/watch?v=UnDjokbZjbs) de la chaîne [exclarrogatif](https://www.youtube.com/@exclarrogatif). Le concept : un jeu de morpion (tic-tac-toe) entièrement jouable via les écrans de fin YouTube. Chaque vidéo propose plusieurs choix menant à d'autres vidéos, formant un graphe d'environ 150 vidéos interconnectées.
 
-Cette série propose un jeu de morpion (tic-tac-toe) jouable via les écrans de fin YouTube : chaque vidéo propose plusieurs choix menant à d'autres vidéos, formant un graphe d'environ 150 vidéos interconnectées.
+En regardant attentivement, on remarque qu'un tableau blanc en arrière-plan affiche à chaque vidéo un **nombre** et une **lettre** en aimants magnétiques. Intrigant. Et si ces indices, mis bout à bout dans l'ordre des nombres, formaient un message ?
 
-Dans chaque vidéo, un tableau blanc en arrière-plan affiche un **nombre** et une **lettre** en aimants magnétiques. En ordonnant les lettres par leurs nombres, on reconstitue un message caché.
+Pour le découvrir, il fallait explorer l'intégralité du graphe, capturer une image de chaque vidéo, puis extraire et ordonner les 131 indices. Un travail fastidieux à la main... mais pas avec les bons outils.
 
 ## Méthode
 
@@ -100,14 +100,6 @@ python Review-Indices.py frames_crop indices.csv
 ```
 
 Raccourcis clavier : `Entrée` (suivant), `Shift+Entrée` (précédent), `Alt+N` (nombre), `Alt+L` (lettre), `Alt+X` (pas de code), `Ctrl+S` (sauvegarder).
-
-### Add-YouTubeLinksToSvg.ps1
-
-Post-traitement d'un SVG généré par Graphviz pour rendre les noeuds cliquables (liens YouTube).
-
-```powershell
-.\Add-YouTubeLinksToSvg.ps1 -InputSvg graph.svg -OutputSvg graph-links.svg
-```
 
 ## Tableau des indices
 
@@ -246,10 +238,10 @@ Post-traitement d'un SVG généré par Graphviz pour rendre les noeuds cliquable
 | `Sb-n3JB7YME` | 130 | L |
 | `8EHRSTAyUY0` | 131 | E |
 
-> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice "50 V". Le vidéaste a vraisemblablement oublié de changer le tableau entre ces deux vidéos. 8 vidéos du graphe ne contiennent aucun code sur le tableau (`58X2c66QxPs`, `65tS5PY8LdU`, `9J3nwusXamY`, `RyvWYc7Fp-U`, `tXYhgZ_rXs8`, `UnDjokbZjbs`, `zAy6U8A7kBo`, `ZFCxZMLZrpA`).
+> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice 50/V (probablement un oubli). Cinq vidéos du graphe ne contiennent aucun code sur le tableau (`65tS5PY8LdU`, `RyvWYc7Fp-U`, `ZFCxZMLZrpA`, `tXYhgZ_rXs8`, `zAy6U8A7kBo`).
 
 ## Message caché
 
-Finalement, le message caché est :
+En ordonnant les 131 lettres par leurs nombres, on obtient :
 
 > Félicitations vous avez passé trop de temps a regarder mes vidéos envoyez moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
