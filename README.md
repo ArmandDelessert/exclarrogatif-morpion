@@ -1,18 +1,30 @@
 # Morpion exclarrogatif - Message caché
 
-Tout a commencé avec la vidéo [**Affrontez-moi au morpion !**](https://www.youtube.com/watch?v=UnDjokbZjbs) de la chaîne [**exclarrogatif**](https://www.youtube.com/@exclarrogatif). Le concept : un jeu de morpion (tic-tac-toe) entièrement jouable via les écrans de fin YouTube. Chaque vidéo propose plusieurs choix menant à d'autres vidéos, formant un graphe d'environ 150 vidéos interconnectées.
+Tout a commencé avec la vidéo « [**Affrontez-moi au morpion !**](https://www.youtube.com/watch?v=UnDjokbZjbs) » de la chaîne YouTube « [**exclarrogatif**](https://www.youtube.com/@exclarrogatif) ». Le concept : un jeu de morpion (tic-tac-toe) entièrement jouable via les vidéos suggérées dans les écrans de fin. Chaque vidéo propose plusieurs choix menant à d’autres vidéos permettant de poursuivre la partie de morpion.
 
-En regardant attentivement, on remarque qu'un tableau blanc en arrière-plan affiche à chaque vidéo un **nombre** et une **lettre** en aimants magnétiques. Intrigant. Et si ces indices, mis bout à bout dans l'ordre des nombres, formaient un message ?
+Je me prête au jeu, je joue une partie et j’arrive sur un match nul. Il n’y a que 3 configuration finales possibles pour un match nul me dit mon adversaire. Et, oh surprise, il me communique un morceau de mot de passe ! Il faut trouver les 2 autres configurations de match nul pour obtenir les 3 parties du mot de passe.
 
-Pour le découvrir, il fallait d'abord explorer l'intégralité du graphe, capturer une image de chaque vidéo, puis extraire et ordonner les indices. Un travail fastidieux à la main… mais gérable avec les bons outils.
+Je recommence quelques parties, et j’obtiens les 3 parties du mot de passe `v=vX`, `lM5l` et `zCmRU`, ce qui donne :
+
+> `v=vXlM5lzCmRU`
+
+Et c’est évidemment l’ID d’une vidéo YouTube :
+
+[BINI | ‘Tic Tac Toe’ Official Lyric Video](https://www.youtube.com/watch?v=vXlM5lzCmRU)
+
+Amusé, je continue encore quelques parties. Au fil des parties, l’auteur de ce jeu me dit qu’il a du tourner environ **150 vidéos**. Je commence alors à découvrir l’ampleur du travail pour arriver à ce jeu vidéo, comme il l’appel !
+
+Mais, dans une vidéo de fin de partie, le vidéaste porte rapidement l’attention du spectateur sur un petit tableau blanc, posé dans une étagère, à gauche dans l’arrière-plan. C’est le tableau utilisé dans l’introduction de la première vidéo. Il affiche un **nombre** et une **lettre** en aimant magnétique. Je reviens sur la vidéo précédente, il affiche un autre nombre et une autre lettre. Je me rend compte qu’à chaque vidéo un nombre et une lettre différents sont disposés sur ce tableau. Un message caché ? Faut-il concaténer toutes les lettres dans l’ordre des nombres ?
+
+Pour le découvrir, il fallait explorer l’intégralité du graphe de vidéos pour relever chaque indice. Un travail fastidieux à la main… mais gérable avec les bons outils !
 
 ## Méthode
 
 1. **Parcours du graphe** : exploration BFS des écrans de fin et des liens en description pour découvrir toutes les vidéos de la série.
-2. **Capture de frames** : extraction d'images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière).
+2. **Capture de frames** : extraction d’images à des timestamps précis via `yt-dlp` + `ffmpeg` (seek côté serveur, sans télécharger la vidéo entière).
 3. **Recadrage** : extraction de la zone du tableau blanc par crop ffmpeg.
-4. **OCR via Claude** : envoi des images recadrées à l'API Claude (vision) pour extraire nombre + lettre.
-5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l'OCR.
+4. **OCR via Claude** : envoi des images recadrées à l’API Claude (vision) pour extraire nombre + lettre.
+5. **Correction manuelle** : interface web locale pour vérifier et corriger les résultats de l’OCR.
 6. **Reconstitution** : tri par nombre et concaténation des lettres.
 
 ## Graphe des vidéos
@@ -30,7 +42,7 @@ Le graphe complet au format DOT et SVG est inclus dans le dépôt. Les noeuds du
 - **Python 3.10+** avec `pip install anthropic pillow`
 - [**yt-dlp**](https://github.com/yt-dlp/yt-dlp) dans le PATH
 - [**ffmpeg**](https://ffmpeg.org/) dans le PATH
-- Variable d'environnement `ANTHROPIC_API_KEY` pour l'extraction OCR
+- Variable d’environnement `ANTHROPIC_API_KEY` pour l’extraction OCR
 
 ### Get-YouTubeGraph.ps1
 
@@ -70,11 +82,11 @@ Capture une ou plusieurs frames de chaque vidéo YouTube sans télécharger la v
 .\Get-YouTubeFrames.ps1 -InputFile videos.txt -OutputDir frames -SkipExisting -CookiesFile cookies.txt
 ```
 
-Le fichier d'entrée contient un identifiant de vidéo par ligne (format TSV supporté).
+Le fichier d’entrée contient un identifiant de vidéo par ligne (format TSV supporté).
 
 ### Crop-Images.ps1
 
-Recadre un lot d'images à l'aide de ffmpeg.
+Recadre un lot d’images à l’aide de ffmpeg.
 
 ```powershell
 .\Crop-Images.ps1 -InputDir frames -OutputDir frames_crop -Width 400 -Height 320 -X 70 -Y 288
@@ -82,7 +94,7 @@ Recadre un lot d'images à l'aide de ffmpeg.
 
 ### Extract-Indices.py
 
-Envoie chaque image recadrée à l'API Claude (vision) pour extraire le nombre et la lettre.
+Envoie chaque image recadrée à l’API Claude (vision) pour extraire le nombre et la lettre.
 
 ```bash
 python Extract-Indices.py frames_crop indices.csv
@@ -92,7 +104,7 @@ Produit un CSV avec les colonnes : `video_id`, `filename`, `number`, `letter`, `
 
 ### Review-Indices.py
 
-Interface web locale pour corriger les résultats de l'OCR. Pré-remplit les champs depuis le CSV existant.
+Interface web locale pour corriger les résultats de l’OCR. Pré-remplit les champs depuis le CSV existant.
 
 ```bash
 python Review-Indices.py frames_crop indices.csv
@@ -238,7 +250,7 @@ Raccourcis clavier : `Entrée` (suivant), `Shift+Entrée` (précédent), `Alt+N`
 | `Sb-n3JB7YME` | 130 | L |
 | `8EHRSTAyUY0` | 131 | E |
 
-> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice 50/V (probablement un oubli de modification du talbeau entre les 2 vidéos). 8 vidéos du graphe ne contiennent aucun code sur le tableau (`58X2c66QxPs`, `65tS5PY8LdU`, `9J3nwusXamY`, `RyvWYc7Fp-U`, `tXYhgZ_rXs8`, `UnDjokbZjbs`, `zAy6U8A7kBo`, `ZFCxZMLZrpA`).
+> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l’indice 50/V (probablement un oubli de modification du talbeau entre les 2 vidéos). 8 vidéos du graphe ne contiennent aucun code sur le tableau (`58X2c66QxPs`, `65tS5PY8LdU`, `9J3nwusXamY`, `RyvWYc7Fp-U`, `tXYhgZ_rXs8`, `UnDjokbZjbs`, `zAy6U8A7kBo`, `ZFCxZMLZrpA`).
 
 ## Message caché
 
