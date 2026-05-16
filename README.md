@@ -1,10 +1,10 @@
 # Morpion exclarrogatif - Message caché
 
-Tout a commencé avec la vidéo [**Affrontez-moi au morpion !**](https://www.youtube.com/watch?v=UnDjokbZjbs) de la chaîne [**exclarrogatif**](https://www.youtube.com/@exclarrogatif). Le concept : un morpion (tic-tac-toe) entièrement jouable via les écrans de fin YouTube. Chaque vidéo propose plusieurs choix qui mènent à d'autres vidéos, formant un graphe d'environ 150 vidéos interconnectées.
+Tout a commencé avec la vidéo [**Affrontez-moi au morpion !**](https://www.youtube.com/watch?v=UnDjokbZjbs) de la chaîne [**exclarrogatif**](https://www.youtube.com/@exclarrogatif). Le concept : un jeu de morpion (tic-tac-toe) entièrement jouable via les écrans de fin YouTube. Chaque vidéo propose plusieurs choix menant à d'autres vidéos, formant un graphe d'environ 150 vidéos interconnectées.
 
 En regardant attentivement, on remarque qu'un tableau blanc en arrière-plan affiche à chaque vidéo un **nombre** et une **lettre** en aimants magnétiques. Intrigant. Et si ces indices, mis bout à bout dans l'ordre des nombres, formaient un message ?
 
-Pour le découvrir, il fallait d'abord explorer l'intégralité du graphe, capturer une image de chaque vidéo, puis extraire et ordonner les 131 indices. Un travail fastidieux à la main... mais pas avec les bons outils.
+Pour le découvrir, il fallait d'abord explorer l'intégralité du graphe, capturer une image de chaque vidéo, puis extraire et ordonner les indices. Un travail fastidieux à la main… mais gérable avec les bons outils.
 
 ## Méthode
 
@@ -238,7 +238,7 @@ Raccourcis clavier : `Entrée` (suivant), `Shift+Entrée` (précédent), `Alt+N`
 | `Sb-n3JB7YME` | 130 | L |
 | `8EHRSTAyUY0` | 131 | E |
 
-> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice "50 V" (probablement un oubli de modification du talbeau entre les 2 vidéos). 8 vidéos du graphe ne contiennent aucun code sur le tableau (`58X2c66QxPs`, `65tS5PY8LdU`, `9J3nwusXamY`, `RyvWYc7Fp-U`, `tXYhgZ_rXs8`, `UnDjokbZjbs`, `zAy6U8A7kBo`, `ZFCxZMLZrpA`).
+> **Note** : les vidéos `5v00E4RE9Cw` et `W6-ZZ0vtgnc` portent toutes deux l'indice 50/V (probablement un oubli de modification du talbeau entre les 2 vidéos). 8 vidéos du graphe ne contiennent aucun code sur le tableau (`58X2c66QxPs`, `65tS5PY8LdU`, `9J3nwusXamY`, `RyvWYc7Fp-U`, `tXYhgZ_rXs8`, `UnDjokbZjbs`, `zAy6U8A7kBo`, `ZFCxZMLZrpA`).
 
 ## Message caché
 
@@ -246,6 +246,3 @@ En ordonnant les 131 lettres par leurs nombres, on obtient :
 
 > Félicitations vous avez passé trop de temps a regarder mes vidéos envoyez moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
 
-## Licence
-
-Ce dépôt contient uniquement les scripts d'analyse. Les vidéos sont la propriété d'[exclarrogatif](https://www.youtube.com/@exclarrogatif).
