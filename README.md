@@ -209,7 +209,7 @@ Après avoir passé en revue toutes les images, on trouve les 131 lettres du tab
 | `Y4RfqqdY-jM` |  87 | E |
 | `bDmHGdHSb2Y` |  88 | S |
 | `dnVjQbYSp7A` |  89 | C |
-| `HfvHF9hoJT0` |  90 | N |
+| `HfvHF9hoJT0` |  90 | H |
 | `X4WH-ZaBspk` |  91 | M |
 | `taFsGCNbxiw` |  92 | I |
 | `ihHkeCO8Dl8` |  93 | L |
@@ -258,7 +258,7 @@ Après avoir passé en revue toutes les images, on trouve les 131 lettres du tab
 
 Finalement on obtient le message suivant :
 
-> Félicitations, vous avez passé trop de temps à regarder mes vidéos, envoyez-moi un mail avec le mot de passe `SCNMILBLICK` et gagnez ma reconnaissance éternelle.
+> Félicitations, vous avez passé trop de temps à regarder mes vidéos, envoyez-moi un mail avec le mot de passe `SCHMILBLICK` et gagnez ma reconnaissance éternelle.
 
 ## Crédits
 
